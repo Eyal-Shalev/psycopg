@@ -7,7 +7,7 @@ Cython adapters for numeric types.
 cimport cython
 
 from libc.stdint cimport *
-from libc.string cimport memcpy, strlen
+from libc.string cimport memcpy, memset, strlen
 from cpython.mem cimport PyMem_Free
 from cpython.dict cimport PyDict_GetItem, PyDict_SetItem
 from cpython.long cimport (
@@ -775,20 +775,24 @@ cdef Py_ssize_t dump_int_to_numeric_binary(obj, bytearray rv, Py_ssize_t offset)
     cdef Py_ssize_t length = sizeof(uint16_t) * (ndigits + 4)
     cdef uint16_t *buf
     buf = <uint16_t *><void *>CDumper.ensure_size(rv, offset, length)
-    buf[0] = endian.htobe16(ndigits)
-    buf[1] = endian.htobe16(ndigits - 1)  # weight
-    buf[2] = endian.htobe16(sign)
-    buf[3] = 0  # dscale
+
+    cdef uint16_t behead[4]
+    behead[0] = endian.htobe16(ndigits)
+    behead[1] = endian.htobe16(ndigits - 1)  # weight
+    behead[2] = endian.htobe16(sign)
+    behead[3] = 0  # dscale
+    memcpy(buf, behead, sizeof(behead))
 
     cdef int i = 4 + ndigits - 1
-    cdef uint16_t rem
+    cdef uint16_t rem, berem
     while obj:
         rem = obj % 10000
         obj //= 10000
-        buf[i] = endian.htobe16(rem)
+        berem = endian.htobe16(rem)
+        memcpy(buf + i, &berem, sizeof(berem))
         i -= 1
     while i > 3:
-        buf[i] = 0
+        memset(buf + i, 0, sizeof(buf[0]))
         i -= 1
 
     return length
