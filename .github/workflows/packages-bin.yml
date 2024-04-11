@@ -124,7 +124,7 @@ jobs:
             PG_VERSION=16
             PSYCOPG_IMPL=binary
             PSYCOPG_TEST_DSN='dbname=postgres'
-            PATH="/usr/local/opt/postgresql@${PG_VERSION}/bin:$PATH"
+            PATH="/opt/homebrew/opt/postgresql@${PG_VERSION}/bin:$PATH"
             PSYCOPG_TEST_WANT_LIBPQ_BUILD=">= $PG_VERSION"
             PSYCOPG_TEST_WANT_LIBPQ_IMPORT=">= $PG_VERSION"
 
